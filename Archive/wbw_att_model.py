@@ -7,11 +7,11 @@ import theano
 
 np.random.seed(1337)
 from keras.preprocessing.sequence import pad_sequences
-from keras.regularizers import l2, activity_l2
+from keras.regularizers import l2
 from keras.callbacks import *
 from keras.models import *
 from keras.optimizers import *
-from keras.utils.np_utils import to_categorical, accuracy
+from keras.utils.np_utils import to_categorical
 from keras.layers.core import *
 from keras.layers.embeddings import Embedding
 from keras.layers.recurrent import *
@@ -295,26 +295,29 @@ if __name__ == "__main__":
     net_dev   = concat_in_out(X_dev  , Y_dev  , vocab)
     net_test  = concat_in_out(X_test , Y_test , vocab)
 
-    Z_train = to_categorical(Z_train, nb_classes=2)
-    Z_dev   = to_categorical(Z_dev,   nb_classes=2)
-    Z_test  = to_categorical(Z_test,  nb_classes=2)
+    Z_train = to_categorical(Z_train, num_classes=2)
+    Z_dev   = to_categorical(Z_dev,   num_classes=2)
+    Z_test  = to_categorical(Z_test,  num_classes=2)
 
     print "Training Premise Size    : ", X_train.shape
     print "Training Hypothesis Size : ", Y_train.shape
 
     assert net_train[0][options.xmaxlen] == vocab['delimiter']
 
+    # options.load_save = True
+    # MODEL_WGHT = 'Models/baseline_150_300_19.weights'
+
     if options.load_save and os.path.exists(MODEL_WGHT):
         print("Loading pre-trained model from ", MODEL_WGHT)
         model = build_model(options)
         model.load_weights(MODEL_WGHT)
 
-#        train_acc=compute_acc(net_train, Z_train, vocab, model, options)
-#        dev_acc=compute_acc(net_dev, Z_dev, vocab, model, options)
-#        test_acc=compute_acc(net_test, Z_test, vocab, model, options, "Test_Predictions.txt")
-#        print "Training Accuracy: ", train_acc
-#        print "Dev Accuracy: ", dev_acc
-#        print "Testing Accuracy: ", test_acc
+        train_acc, train_pre, train_rec, train_f = compute_acc(net_train, Z_train, vocab, model, options)
+        dev_acc, dev_pre, dev_rec, dev_f   = compute_acc(net_dev, Z_dev, vocab, model, options)
+        test_acc, test_pre, test_rec, test_f  = compute_acc(net_test, Z_test, vocab, model, options)
+        print "Training Acc: ", train_acc, "\t Precision: ", train_pre, "\t Recall: ", train_rec, "\t F-Score: ", train_f
+        print "Dev Acc: ", dev_acc, "\t Precision: ", dev_pre, "\t Recall: ", dev_rec, "\t F-Score: ", dev_f
+        print "Testing Acc: ", test_acc, "\t Precision: ", test_pre, "\t Recall: ", test_rec, "\t F-Score: ", test_f
 
     else:
         print 'Building model'
